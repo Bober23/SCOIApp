@@ -1,0 +1,10 @@
+﻿namespace SCOI
+{
+    public partial class MainPage : ContentPage
+    {
+        public MainPage()
+        {
+            InitializeComponent();
+        }
+    }
+}
