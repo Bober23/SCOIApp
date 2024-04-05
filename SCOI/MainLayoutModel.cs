@@ -17,7 +17,7 @@ namespace SCOI
         {
 			Stream stream = uploadedFile.OpenReadStream();
 			MainImage = await Converter.FromStreamToImage(stream);
-            layers.Clear();
+            layers = new List<Layer>();
             var mainLayer = new Layer(MainImage);
             mainLayer.Operation = "Основное изображение";
             layers.Add(mainLayer);
@@ -34,7 +34,19 @@ namespace SCOI
             {
                 if (layer.Operation == "Сложение")
                 {
-                    MainImage = ImageProcessor.SumLayers(MainImage, layer);
+                    MainImage = ImageProcessor.SumLayers(layers.First().Image, layer);
+                }
+                if (layer.Operation == "Вычитание")
+                {
+                    MainImage = ImageProcessor.DivLayers(layers.First().Image, layer);
+                }
+                if (layer.Operation == "Среднее")
+                {
+                    MainImage = ImageProcessor.MiddleLayers(layers.First().Image, layer);
+                }
+                if (layer.Operation == "Максимум")
+                {
+                    MainImage = ImageProcessor.MaxLayers(layers.First().Image, layer);
                 }
             }
         }

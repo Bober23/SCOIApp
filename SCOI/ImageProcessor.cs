@@ -13,39 +13,115 @@ namespace SCOI
 	{
 		public static System.Drawing.Image SumLayers(System.Drawing.Image mainImage, Layer subLayer)
 		{
-
-			Bitmap mainBmp = new Bitmap(mainImage);
-			Bitmap newBmp = new Bitmap(mainBmp.Width, mainBmp.Height);
-			Bitmap subBmp = new Bitmap(subLayer.Image, new System.Drawing.Size(mainBmp.Width, mainBmp.Height));
-			for (int i = 0; i < mainBmp.Width; i++)
+			byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)mainImage);
+			byte[] subBytes = Converter.FromBitmapToByte((Bitmap)subLayer.Image, targetWidth: mainImage.Width, targetHeight: mainImage.Height);
+			double transparencyCoef = 1 - subLayer.Transparency / 100;
+			for (int i = 0; i < mainBytes.Length; i++)
 			{
-				for (int j = 0; j < mainBmp.Height; j++)
+				if (subLayer.B)
 				{
-					var mainPixel = mainBmp.GetPixel(i, j);
-					var subPixel = subBmp.GetPixel(i, j);
-					int rChannel = mainPixel.R;
-					int gChannel = mainPixel.G;
-					int bChannel = mainPixel.B;
-					if (subLayer.R)
-					{
-						rChannel = (int)(mainPixel.R + subPixel.R * ((100.0001 - subLayer.Transparency) / 100)) / 2;
-						rChannel = Clamp(rChannel, 0, 255);
-					}
-					if (subLayer.G)
-					{
-						gChannel = (int)(mainPixel.G + subPixel.G * ((100.0001 - subLayer.Transparency) / 100)) / 2;
-						gChannel = Clamp(gChannel, 0, 255);
-					}
-					if (subLayer.B)
-					{
-						bChannel = (int)(mainPixel.B + subPixel.B * ((100.0001 - subLayer.Transparency) / 100)) / 2;
-						bChannel = Clamp(bChannel, 0, 255);
-					}
-					System.Drawing.Color newPixel = System.Drawing.Color.FromArgb(rChannel, gChannel, bChannel);
-					newBmp.SetPixel(i, j, newPixel);
+					int b = (int)(mainBytes[i] + subBytes[i] * transparencyCoef);
+					mainBytes[i] = (byte)Clamp(b, 0, 255);
+				}
+				i++;
+				if (subLayer.G)
+				{
+					int g = (int)(mainBytes[i] + subBytes[i] * transparencyCoef);
+					mainBytes[i] = (byte)Clamp(g, 0, 255);
+				}
+				i++;
+				if (subLayer.R)
+				{
+					int r = (int)(mainBytes[i] + subBytes[i] * transparencyCoef);
+					mainBytes[i] = (byte)Clamp(r, 0, 255);
 				}
 			}
-			return newBmp;
+			return Converter.FromByteToBitmap(mainBytes, mainImage.Width, mainImage.Height, mainImage.HorizontalResolution, mainImage.VerticalResolution);
+
+		}
+		public static System.Drawing.Image DivLayers(System.Drawing.Image mainImage, Layer subLayer)
+		{
+			byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)mainImage);
+			byte[] subBytes = Converter.FromBitmapToByte((Bitmap)subLayer.Image, targetWidth: mainImage.Width, targetHeight: mainImage.Height);
+			double transparencyCoef = 1 - subLayer.Transparency / 100;
+			for (int i = 0; i < mainBytes.Length; i++)
+			{
+				if (subLayer.B)
+				{
+					int b = (int)(mainBytes[i] - subBytes[i] * transparencyCoef);
+					mainBytes[i] = (byte)Clamp(b, 0, 255);
+				}
+				i++;
+				if (subLayer.G)
+				{
+					int g = (int)(mainBytes[i] - subBytes[i] * transparencyCoef);
+					mainBytes[i] = (byte)Clamp(g, 0, 255);
+				}
+				i++;
+				if (subLayer.R)
+				{
+					int r = (int)(mainBytes[i] - subBytes[i] * transparencyCoef);
+					mainBytes[i] = (byte)Clamp(r, 0, 255);
+				}
+			}
+			return Converter.FromByteToBitmap(mainBytes, mainImage.Width, mainImage.Height, mainImage.HorizontalResolution, mainImage.VerticalResolution);
+
+		}
+		public static System.Drawing.Image MiddleLayers(System.Drawing.Image mainImage, Layer subLayer)
+		{
+			byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)mainImage);
+			byte[] subBytes = Converter.FromBitmapToByte((Bitmap)subLayer.Image, targetWidth: mainImage.Width, targetHeight: mainImage.Height);
+			double transparencyCoef = 1 - subLayer.Transparency / 100;
+			for (int i = 0; i < mainBytes.Length; i++)
+			{
+				if (subLayer.B)
+				{
+					int b = (int)(mainBytes[i] * (2 - transparencyCoef) + subBytes[i] * transparencyCoef) / 2;
+					mainBytes[i] = (byte)Clamp(b, 0, 255);
+				}
+				i++;
+				if (subLayer.G)
+				{
+					int g = (int)(mainBytes[i] * (2 - transparencyCoef) + subBytes[i] * transparencyCoef) / 2;
+					mainBytes[i] = (byte)Clamp(g, 0, 255);
+				}
+				i++;
+				if (subLayer.R)
+				{
+					int r = (int)(mainBytes[i] * (2 - transparencyCoef) + subBytes[i] * transparencyCoef) / 2;
+					mainBytes[i] = (byte)Clamp(r, 0, 255);
+				}
+			}
+			return Converter.FromByteToBitmap(mainBytes, mainImage.Width, mainImage.Height, mainImage.HorizontalResolution, mainImage.VerticalResolution);
+
+		}
+		public static System.Drawing.Image MaxLayers(System.Drawing.Image mainImage, Layer subLayer)
+		{
+			byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)mainImage);
+			byte[] subBytes = Converter.FromBitmapToByte((Bitmap)subLayer.Image, targetWidth: mainImage.Width, targetHeight: mainImage.Height);
+			double transparencyCoef = 1 - subLayer.Transparency / 100;
+			for (int i = 0; i < mainBytes.Length; i++)
+			{
+				if (subLayer.B)
+				{
+					int b = (int)Math.Max(mainBytes[i], subBytes[i] * transparencyCoef);
+					mainBytes[i] = (byte)Clamp(b, 0, 255);
+				}
+				i++;
+				if (subLayer.G)
+				{
+					int g = (int)Math.Max(mainBytes[i], subBytes[i] * transparencyCoef);
+					mainBytes[i] = (byte)Clamp(g, 0, 255);
+				}
+				i++;
+				if (subLayer.R)
+				{
+					int r = (int)Math.Max(mainBytes[i], subBytes[i] * transparencyCoef);
+					mainBytes[i] = (byte)Clamp(r, 0, 255);
+				}
+			}
+			return Converter.FromByteToBitmap(mainBytes, mainImage.Width, mainImage.Height, mainImage.HorizontalResolution, mainImage.VerticalResolution);
+
 		}
 		public static T Clamp<T>(T val, T min, T max) where T : IComparable<T>
 		{
