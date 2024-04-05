@@ -4,9 +4,9 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudLayout>
-	<MudAppBar Elevation="1">
+	<MudAppBar Elevation="1" Dense=true>
 		<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
-		<MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="@( async (context) => await FileUploaded(context))" MaximumFileCount="1">
+		<MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="@(async (context) => await Model.OpenNewMainImage(context))" MaximumFileCount="1">
 			<ButtonTemplate>
 				<MudButton HtmlTag="label"
 						   Variant="Variant.Filled"
@@ -17,58 +17,109 @@
 				</MudButton>
 			</ButtonTemplate>
 		</MudFileUpload>
-		<MudButton Color="Color.Inherit">Экспорт</MudButton>
+		<MudButton Variant="Variant.Filled">рассчитать</MudButton>
 		<MudSpacer />
+		<h3>SCOI Lab</h3>
 		<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor" Target="_blank" />
 	</MudAppBar>
-	<MudDrawer @bind-Open="@open" Elevation="1">
-		<MudDrawerHeader>
-			<MudText Typo="Typo.h6">My App</MudText>
-		</MudDrawerHeader>
+	<MudDrawer @bind-Open="@open" ClipMode=DrawerClipMode.Docked Elevation="1" Variant="@DrawerVariant.Mini">
 		<MudNavMenu>
-			<MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Layers">Слои</MudNavLink>
-			<MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Grade">Градационные преобразования</MudNavLink>
-			<MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AreaChart">Град. пр.</MudNavLink>
+			<MudNavLink Match="NavLinkMatch.All" OnClick="@(() => page = "layers")" Icon="@Icons.Material.Filled.Layers">Слои</MudNavLink>
+			<MudNavLink Match="NavLinkMatch.All" OnClick="@(() => page = "")" Icon="@Icons.Material.Filled.LibraryBooks">Library</MudNavLink>
+			<MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Group">Community</MudNavLink>
 		</MudNavMenu>
 	</MudDrawer>
-	<MudMainContent Style="display:flex; flex-direction:column-reverse; height:99vh; margin:5px">
-		<MudPaper Class="pa-16 ma-2" Elevation="3" Height="300px">
-			
-		</MudPaper>
-		<MudPaper Class="pa-16 ma-2" Elevation="0" style="flex-grow:1">
-			<div style="justify-content:space-between; display:flex">
-				<MudImage Src=@imageSource Alt="Swedish Farm House" Elevation="25" Class="rounded-lg ma-4" />
-				<MudImage Src=@imageSource Alt="Swedish Farm House" Elevation="25" Class="rounded-lg ma-4" />
+
+	<MudMainContent style="padding:0px; height:100vh; padding-top:45px">
+		<div style="display:flex; height:100%">
+			<div style="border-right:1px solid #333; padding-left:10px; padding-right:10px; width:20%; overflow-y:scroll; padding-top:10px">
+				@if (page == "layers")
+				{
+					if(Model.MainImage == null)
+					{
+						<p>Пожалуйста, откройте изображение</p>
+					}
+					else
+					{
+						<div style="display:flex; align-content:center; height:50px">
+							<h2>Слои</h2>
+							<div style="flex-grow: 1" />
+							<MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="@((context) => Model.LoadNewLayer(context))" MaximumFileCount="1">
+								<ButtonTemplate>
+									<MudButton HtmlTag="label"
+											   Variant="Variant.Filled"
+											   Color="Color.Primary"
+											   Size="Size.Small"
+											   StartIcon="@Icons.Material.Filled.CloudUpload"
+											   for="@context.Id">
+										Добавить слой
+									</MudButton>
+								</ButtonTemplate>
+							</MudFileUpload>
+						</div>
+						<MudStack @ref=@stack>
+							@foreach (var layer in Model.layers)
+							{
+								<MudPaper Style="padding:5px">
+									@if (layer.Operation!="Основное изображение")
+									{
+										<MudSelect T="string" Value="@layer.Operation" ValueChanged=@((string value)=>ParamsChanged(value, layer)) Label="Тип операции" AnchorOrigin="Origin.BottomCenter">
+											<MudSelectItem Value="@("Не учитывать")" />
+											<MudSelectItem Value="@("Сложение")" />
+											<MudSelectItem Value="@("Вычесть")" />
+										</MudSelect>
+										<MudSlider Value="@layer.Transparency" ValueChanged="@( (double value) => TransparencyChangeHandler(value, layer))" Variant="Variant.Filled">Прозрачность: @layer.Transparency %</MudSlider>
+										<div style="display:flex; justify-content:space-around">
+											<MudCheckBox @bind-Value="@layer.R" Color="Color.Error" Size="Size.Small"></MudCheckBox>
+											<MudCheckBox @bind-Value="@layer.G" Color="Color.Success" Size="Size.Small"></MudCheckBox>
+											<MudCheckBox @bind-Value="@layer.B" Color="Color.Info" Size="Size.Small"></MudCheckBox>
+										</div>
+									}
+									else
+									{
+										<h4>@layer.Operation</h4>
+									}
+									<MudImage Src=@Converter.FromImageToImageSource(layer.Image) Alt="LayerElem" ObjectFit=ObjectFit.Contain Elevation="25" Fluid="true" Class="rounded-lg" Style="margin: auto;max-height:100%" />
+								</MudPaper>
+
+							}
+						</MudStack>
+					}
+				}
 			</div>
-		</MudPaper>
-		
+			<div style="width:100%; align-content:center; display:flex; padding:10px;">
+				<div style="flex-grow: 1" />
+				@if (Model.MainImage != null)
+				{
+					<MudImage Src=@Converter.FromImageToImageSource(Model.MainImage) ObjectFit=ObjectFit.Contain Elevation="25" Fluid="true" Class="rounded-lg" Style="margin: auto;max-height:100%" />
+				}
+
+				<div style="flex-grow: 1" />
+			</div>
+		</div>
 
 	</MudMainContent>
 </MudLayout>
 @code {
 	bool open = false;
-	IBrowserFile file;
-	string imageSource = "";
+	MainLayoutModel Model = new MainLayoutModel();
 
+	string page = "layers";
+	MudBlazor.MudStack stack;
+	int value = 50;
 	void ToggleDrawer()
 	{
 		open = !open;
 	}
-	async Task FileUploaded(IBrowserFile uploadedFile)
+
+	public void TransparencyChangeHandler(double value, Layer layer)
 	{
-		file = uploadedFile;
-		Stream stream = file.OpenReadStream();
-		byte[] bytes;
-		using (var memoryStream = new MemoryStream())
-		{
-			await stream.CopyToAsync(memoryStream);
-			bytes = memoryStream.ToArray();
-		}
-
-		string base64 = Convert.ToBase64String(bytes);
-		imageSource = string.Format("data:image/jpg;base64, {0}", base64);
-
+		Model.layers.FirstOrDefault(x => x.Equals(layer)).Transparency = value;
 	}
 
-
+	public void ParamsChanged(string operation, Layer layer)
+	{
+		Model.layers.FirstOrDefault(x => x.Equals(layer)).Operation = operation;
+		Model.CalculateImage();
+	}
 }
