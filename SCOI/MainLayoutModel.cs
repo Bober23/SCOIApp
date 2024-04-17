@@ -15,18 +15,20 @@ namespace SCOI
 
         public async Task OpenNewMainImage(IBrowserFile uploadedFile)
         {
-			Stream stream = uploadedFile.OpenReadStream();
+			using Stream stream = uploadedFile.OpenReadStream(maxAllowedSize:10000000);
 			MainImage = await Converter.FromStreamToImage(stream);
-            layers = new List<Layer>();
+            layers.Clear();
             var mainLayer = new Layer(MainImage);
             mainLayer.Operation = "Основное изображение";
             layers.Add(mainLayer);
-		}
+            Console.WriteLine("Vse");
+        }
         public async Task LoadNewLayer(IBrowserFile uploadedFile)
         {
-			Stream stream = uploadedFile.OpenReadStream();
+			using Stream stream = uploadedFile.OpenReadStream(maxAllowedSize: 10000000);
             var img = await Converter.FromStreamToImage(stream);
             layers.Add(new Layer(img));
+            Console.WriteLine("Vse");
 		}
         public void CalculateImage()
         {
@@ -47,6 +49,10 @@ namespace SCOI
                 if (layer.Operation == "Максимум")
                 {
                     MainImage = ImageProcessor.MaxLayers(layers.First().Image, layer);
+                }
+                if (layer.Operation == "Минимум")
+                {
+                    MainImage = ImageProcessor.MinLayers(layers.First().Image, layer);
                 }
             }
         }

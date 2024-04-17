@@ -123,7 +123,36 @@ namespace SCOI
 			return Converter.FromByteToBitmap(mainBytes, mainImage.Width, mainImage.Height, mainImage.HorizontalResolution, mainImage.VerticalResolution);
 
 		}
-		public static T Clamp<T>(T val, T min, T max) where T : IComparable<T>
+
+        public static System.Drawing.Image MinLayers(System.Drawing.Image mainImage, Layer subLayer)
+        {
+            byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)mainImage);
+            byte[] subBytes = Converter.FromBitmapToByte((Bitmap)subLayer.Image, targetWidth: mainImage.Width, targetHeight: mainImage.Height);
+            double transparencyCoef = 1 - subLayer.Transparency / 100;
+            for (int i = 0; i < mainBytes.Length; i++)
+            {
+                if (subLayer.B)
+                {
+                    int b = (int)Math.Min(mainBytes[i], subBytes[i] * transparencyCoef);
+                    mainBytes[i] = (byte)Clamp(b, 0, 255);
+                }
+                i++;
+                if (subLayer.G)
+                {
+                    int g = (int)Math.Min(mainBytes[i], subBytes[i] * transparencyCoef);
+                    mainBytes[i] = (byte)Clamp(g, 0, 255);
+                }
+                i++;
+                if (subLayer.R)
+                {
+                    int r = (int)Math.Min(mainBytes[i], subBytes[i] * transparencyCoef);
+                    mainBytes[i] = (byte)Clamp(r, 0, 255);
+                }
+            }
+            return Converter.FromByteToBitmap(mainBytes, mainImage.Width, mainImage.Height, mainImage.HorizontalResolution, mainImage.VerticalResolution);
+
+        }
+        public static T Clamp<T>(T val, T min, T max) where T : IComparable<T>
 		{
 			if (val.CompareTo(min) < 0) return min;
 			else if (val.CompareTo(max) > 0) return max;

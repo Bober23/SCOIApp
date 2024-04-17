@@ -21,7 +21,7 @@
 			</MudFileUpload>
 		}
 		<MudSpacer />
-		<h4>SCOI Lab</h4>
+		<h4 style="margin-bottom:0px">SCOI Lab</h4>
 		<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor" Target="_blank" />
 	</MudAppBar>
 	@if (Model.MainImage != null)
@@ -35,7 +35,7 @@
 
 		<MudMainContent style="padding:0px; height:100vh; padding-top:45px">
 			<div style="display:flex; height:100%">
-				<div style="border-right:1px solid #333; padding-left:10px; padding-right:10px; width:20%; overflow-y:scroll; padding-top:10px">
+				<div style="border-right:1px solid #333; padding-left:10px; padding-right:10px; width:400px; overflow-y:scroll; padding-top:10px">
 					@if (page == "layers")
 					{
 
@@ -55,7 +55,7 @@
 								</ButtonTemplate>
 							</MudFileUpload>
 						</div>
-						<MudButton OnClick=ParamsChanged Style="width:100%" Variant="Variant.Outlined">Рассчитать</MudButton>
+						<MudButton OnClick=ParamsChanged Style="width:100%; margin-bottom:10px" Variant="Variant.Outlined">Рассчитать</MudButton>
 						<MudStack @ref=@stack>
 							@foreach (var layer in Model.layers)
 							{
@@ -66,6 +66,7 @@
 											<MudSelectItem Value="@("Не учитывать")" />
 											<MudSelectItem Value="@("Среднее")" />
 											<MudSelectItem Value="@("Максимум")" />
+											<MudSelectItem Value="@("Минимум")" />
 											<MudSelectItem Value="@("Сложение")" />
 											<MudSelectItem Value="@("Вычитание")" />
 										</MudSelect>
@@ -102,7 +103,7 @@
 	}
 	else
 	{
-		<div style="display:flex;margin:50px; justify-content:center; height:100vh; width:100%">
+		<div style="display:flex; justify-content:center; height:100vh; width:100%">
 			<div style="flex-grow: 1" />
 			<div>
 				<div style="height:35vh"/>
