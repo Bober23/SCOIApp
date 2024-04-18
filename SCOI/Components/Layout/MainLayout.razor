@@ -4,148 +4,183 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudLayout>
-	<MudAppBar Elevation="1" Dense=true>
-		@if (Model.MainImage != null)
-		{
-			<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
-			<MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="@(async (context) => await Model.OpenNewMainImage(context))" MaximumFileCount="1" Style="margin-top:0px">
-				<ButtonTemplate>
-					<MudButton HtmlTag="label"
-							   Variant="Variant.Filled"
-							   Color="Color.Primary"
-							   StartIcon="@Icons.Material.Filled.CloudUpload"
-							   for="@context.Id">
-						Загрузить новое фото
-					</MudButton>
-				</ButtonTemplate>
-			</MudFileUpload>
-		}
-		<MudSpacer />
-		<h4 style="margin-bottom:0px">SCOI Lab</h4>
-		<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor" Target="_blank" />
-	</MudAppBar>
-	@if (Model.MainImage != null)
-	{
-		<MudDrawer @bind-Open="@open" ClipMode=DrawerClipMode.Docked Elevation="1" Variant="@DrawerVariant.Mini">
-			<MudNavMenu>
-				<MudNavLink Match="NavLinkMatch.All" OnClick="@(() => page = "layers")" Icon="@Icons.Material.Filled.Layers">Слои</MudNavLink>
-				
-			</MudNavMenu>
-		</MudDrawer>
+    <MudAppBar Elevation="1" Dense=true>
+        @if (Model.MainImage != null)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+            <MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="@(async (context) => await Model.OpenNewMainImage(context))" MaximumFileCount="1" Style="margin-top:0px">
+                <ButtonTemplate>
+                    <MudButton HtmlTag="label"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                               for="@context.Id">
+                        Загрузить новое фото
+                    </MudButton>
+                </ButtonTemplate>
+            </MudFileUpload>
+        }
+        <MudSpacer />
+        <h4 style="margin-bottom:0px">SCOI Lab</h4>
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor" Target="_blank" />
+    </MudAppBar>
+    @if (Model.MainImage != null)
+    {
+        <MudDrawer @bind-Open="@open" ClipMode=DrawerClipMode.Docked Elevation="1" Variant="@DrawerVariant.Mini">
+            <MudNavMenu>
+                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "layers"; Model.layers.First().Image = Model.MainImage;})" Icon="@Icons.Material.Filled.Layers">Слои</MudNavLink>
+                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "gradation"; Model.layers.First().Image = Model.MainImage;})" Icon="@Icons.Material.Filled.Transform">Градационные преобразования</MudNavLink>
+            </MudNavMenu>
+        </MudDrawer>
 
-		<MudMainContent style="padding:0px; height:100vh; padding-top:45px">
-			<div style="display:flex; height:100%">
-				<div style="border-right:1px solid #333; padding-left:10px; padding-right:10px; width:400px; overflow-y:scroll; padding-top:10px">
-					@if (page == "layers")
-					{
+        <MudMainContent style="padding:0px; height:100vh; padding-top:45px">
+            <div style="display:flex; height:100%">
+                <div style="border-right:1px solid #333; padding-left:10px; padding-right:10px; width:400px; overflow-y:scroll; padding-top:10px">
+                    @if (page == "layers")
+                    {
 
-						<div style="display:flex; align-content:center; height:50px">
-							<h2>Слои</h2>
-							<div style="flex-grow: 1" />
-							<MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="@((context) => Model.LoadNewLayer(context))" MaximumFileCount="1">
-								<ButtonTemplate>
-									<MudButton HtmlTag="label"
-											   Variant="Variant.Filled"
-											   Color="Color.Primary"
-											   Size="Size.Small"
-											   StartIcon="@Icons.Material.Filled.CloudUpload"
-											   for="@context.Id">
-										Добавить слой
-									</MudButton>
-								</ButtonTemplate>
-							</MudFileUpload>
-						</div>
-						<MudButton OnClick=ParamsChanged Style="width:100%; margin-bottom:10px" Variant="Variant.Outlined">Рассчитать</MudButton>
-						<MudStack @ref=@stack>
-							@foreach (var layer in Model.layers)
-							{
-								<MudPaper Style="padding:5px">
-									@if (layer.Operation != "Основное изображение")
-									{
-										<MudSelect T="string" @bind-Value="@layer.Operation" Label="Тип операции" AnchorOrigin="Origin.BottomCenter">
-											<MudSelectItem Value="@("Не учитывать")" />
-											<MudSelectItem Value="@("Среднее")" />
-											<MudSelectItem Value="@("Максимум")" />
-											<MudSelectItem Value="@("Минимум")" />
-											<MudSelectItem Value="@("Сложение")" />
-											<MudSelectItem Value="@("Вычитание")" />
-										</MudSelect>
-										<MudSlider Value="@layer.Transparency" ValueChanged="@( (double value) => TransparencyChangeHandler(value, layer))" Variant="Variant.Filled">Прозрачность: @layer.Transparency %</MudSlider>
-										<div style="display:flex; justify-content:space-around">
-											<MudCheckBox @bind-Value="@layer.R" Color="Color.Error" Size="Size.Small"></MudCheckBox>
-											<MudCheckBox @bind-Value="@layer.G" Color="Color.Success" Size="Size.Small"></MudCheckBox>
-											<MudCheckBox @bind-Value="@layer.B" Color="Color.Info" Size="Size.Small"></MudCheckBox>
-										</div>
-									}
-									else
-									{
-										<h4>@layer.Operation</h4>
-									}
-									<MudImage Src=@Converter.FromImageToImageSource(layer.Image) Alt="LayerElem" ObjectFit=ObjectFit.Contain Elevation="25" Fluid="true" Class="rounded-lg" Style="margin: auto;max-height:100%" />
-								</MudPaper>
+                        <div style="display:flex; align-content:center; height:50px">
+                            <h2>Слои</h2>
+                            <div style="flex-grow: 1" />
+                            <MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="@((context) => Model.LoadNewLayer(context))" MaximumFileCount="1">
+                                <ButtonTemplate>
+                                    <MudButton HtmlTag="label"
+                                               Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                                               for="@context.Id">
+                                        Добавить слой
+                                    </MudButton>
+                                </ButtonTemplate>
+                            </MudFileUpload>
+                        </div>
+                        <MudButton OnClick=ParamsChanged Style="width:100%; margin-bottom:10px" Variant="Variant.Outlined">Рассчитать</MudButton>
+                        <MudStack @ref=@stack>
+                            @foreach (var layer in Model.layers)
+                            {
+                                <MudPaper Style="padding:5px">
+                                    @if (layer.Operation != "Основное изображение")
+                                    {
+                                        <MudSelect T="string" @bind-Value="@layer.Operation" Label="Тип операции" AnchorOrigin="Origin.BottomCenter">
+                                            <MudSelectItem Value="@("Не учитывать")" />
+                                            <MudSelectItem Value="@("Среднее")" />
+                                            <MudSelectItem Value="@("Максимум")" />
+                                            <MudSelectItem Value="@("Минимум")" />
+                                            <MudSelectItem Value="@("Сложение")" />
+                                            <MudSelectItem Value="@("Вычитание")" />
+                                        </MudSelect>
+                                        <MudSlider Value="@layer.Transparency" ValueChanged="@( (double value) => TransparencyChangeHandler(value, layer))" Variant="Variant.Filled">Прозрачность: @layer.Transparency %</MudSlider>
+                                        <div style="display:flex; justify-content:space-around">
+                                            <MudCheckBox @bind-Value="@layer.R" Color="Color.Error" Size="Size.Small"></MudCheckBox>
+                                            <MudCheckBox @bind-Value="@layer.G" Color="Color.Success" Size="Size.Small"></MudCheckBox>
+                                            <MudCheckBox @bind-Value="@layer.B" Color="Color.Info" Size="Size.Small"></MudCheckBox>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <h4>@layer.Operation</h4>
+                                    }
+                                    <MudImage Src=@Converter.FromImageToImageSource(layer.Image) Alt="LayerElem" ObjectFit=ObjectFit.Contain Elevation="25" Fluid="true" Class="rounded-lg" Style="margin: auto;max-height:100%" />
+                                </MudPaper>
 
-							}
-						</MudStack>
-					}
-				</div>
-				<div style="width:100%; align-content:center; display:flex; padding:10px;">
-					<div style="flex-grow: 1" />
-					@if (Model.MainImage != null)
-					{
-						<MudImage Src=@Converter.FromImageToImageSource(Model.MainImage) ObjectFit=ObjectFit.Contain Elevation="25" Fluid="true" Class="rounded-lg" Style="margin: auto;max-height:100%" />
-					}
+                            }
+                        </MudStack>
+                    }
+                    @if (page == "gradation")
+                    {
+                        <h2>Градационные преобразования</h2>
+                        <MudButton OnClick=ParamsChanged Style="width:100%; margin-bottom:10px" Variant="Variant.Outlined">Рассчитать</MudButton>
+                        <MudStack>
+                            @foreach (var point in Model.points)
+                            {
+                                <MudPaper Style="padding:5px">
+                                    <MudTextField @bind-Value=point.x Label="Координата X" Variant="Variant.Outlined" Validation="new Func<int,bool>(context => context>=0&&context<=255)"></MudTextField>
+                                    <MudTextField @bind-Value=point.y Label="Координата Y" Variant="Variant.Outlined" Validation="new Func<int,bool>(context => context>=0&&context<=255)"></MudTextField>
+                                    @if (Model.points.Count > 2)
+                                    {
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="()=>Model.points.Remove(point)"></MudIconButton>
+                                    }
+                                </MudPaper>
+                            }
+                            <MudButton HtmlTag="label"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       StartIcon="@Icons.Material.Filled.CloudUpload"
+                                       OnClick="AddNewPoint">
+                                Добавить точку
+                            </MudButton>
+                        </MudStack>
+                    }
+                </div>
+                <div style="width:100%; align-content:center; display:flex; padding:10px;">
+                    <div style="flex-grow: 1" />
+                    @if (Model.MainImage != null)
+                    {
+                        <MudImage Src=@Converter.FromImageToImageSource(Model.MainImage) ObjectFit=ObjectFit.Contain Elevation="25" Fluid="true" Class="rounded-lg" Style="margin: auto;max-height:100%" />
+                    }
 
-					<div style="flex-grow: 1" />
-				</div>
-			</div>
+                    <div style="flex-grow: 1" />
+                </div>
+            </div>
 
-		</MudMainContent>
-	}
-	else
-	{
-		<div style="display:flex; justify-content:center; height:100vh; width:100%">
-			<div style="flex-grow: 1" />
-			<div>
-				<div style="height:35vh"/>
-				<h1>Загрузите изображение для начала работы</h1>
-				<MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="@(async (context) => await Model.OpenNewMainImage(context))" MaximumFileCount="1">
-					<ButtonTemplate>
-						<MudButton HtmlTag="label"
-								   Variant="Variant.Filled"
-								   Color="Color.Primary"
-								   StartIcon="@Icons.Material.Filled.CloudUpload"
-								   Size="Size.Large"
-								   Style="width:100%; height:70px"
-								   for="@context.Id">
-							Загрузить изображение
-						</MudButton>
-					</ButtonTemplate>
-				</MudFileUpload>
-			</div>
-			<div style="flex-grow: 1" />
-		</div>
-	}
+        </MudMainContent>
+    }
+    else
+    {
+        <div style="display:flex; justify-content:center; height:100vh; width:100%">
+            <div style="flex-grow: 1" />
+            <div>
+                <div style="height:35vh" />
+                <h1>Загрузите изображение для начала работы</h1>
+                <MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="@(async (context) => await Model.OpenNewMainImage(context))" MaximumFileCount="1">
+                    <ButtonTemplate>
+                        <MudButton HtmlTag="label"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.CloudUpload"
+                                   Size="Size.Large"
+                                   Style="width:100%; height:70px"
+                                   for="@context.Id">
+                            Загрузить изображение
+                        </MudButton>
+                    </ButtonTemplate>
+                </MudFileUpload>
+            </div>
+            <div style="flex-grow: 1" />
+        </div>
+    }
 
 </MudLayout>
 @code {
-	bool open = false;
-	MainLayoutModel Model = new MainLayoutModel();
+    bool open = false;
+    MainLayoutModel Model = new MainLayoutModel();
 
-	string page = "layers";
-	MudBlazor.MudStack stack;
-	int value = 50;
-	void ToggleDrawer()
-	{
-		open = !open;
-	}
+    string page = "layers";
+    MudBlazor.MudStack stack;
+    int value = 50;
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
 
-	public void TransparencyChangeHandler(double value, Layer layer)
-	{
-		Model.layers.FirstOrDefault(x => x.Equals(layer)).Transparency = value;
-	}
+    public void TransparencyChangeHandler(double value, Layer layer)
+    {
+        Model.layers.FirstOrDefault(x => x.Equals(layer)).Transparency = value;
+    }
 
-	public async Task ParamsChanged()
-	{
-		Model.CalculateImage();
-	}
+    public async Task ParamsChanged()
+    {
+        Model.CalculateImage(page);
+    }
+
+    public async Task AddNewPoint()
+    {
+        Model.points.Add(new MyPoint(0, 0));
+    }
+    public async Task RemovePoint(MyPoint point)
+    {
+        Model.points.Remove(point);
+    }
 }
