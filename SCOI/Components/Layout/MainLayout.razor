@@ -1,5 +1,12 @@
 ﻿@inherits LayoutComponentBase
+@using ChartJs.Blazor.BarChart
+@using ChartJs.Blazor.Common
+@using ChartJs.Blazor.PieChart
 @using Components
+@using Plotly.Blazor
+@using Plotly.Blazor.Traces
+@using Plotly.Blazor.Traces.HistogramLib
+
 <MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -30,6 +37,7 @@
             <MudNavMenu>
                 <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "layers"; Model.layers.First().Image = Model.MainImage;})" Icon="@Icons.Material.Filled.Layers">Слои</MudNavLink>
                 <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "gradation"; Model.layers.First().Image = Model.MainImage;})" Icon="@Icons.Material.Filled.Transform">Градационные преобразования</MudNavLink>
+                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "binarization"; Model.layers.First().Image = Model.MainImage;})" Icon="@Icons.Material.Filled.Transform">Бинаризация</MudNavLink>
             </MudNavMenu>
         </MudDrawer>
 
@@ -47,7 +55,7 @@
                                     <MudButton HtmlTag="label"
                                                Variant="Variant.Filled"
                                                Color="Color.Primary"
-                                               Size="Size.Small"
+                                               Size="MudBlazor.Size.Small"
                                                StartIcon="@Icons.Material.Filled.CloudUpload"
                                                for="@context.Id">
                                         Добавить слой
@@ -72,9 +80,9 @@
                                         </MudSelect>
                                         <MudSlider Value="@layer.Transparency" ValueChanged="@( (double value) => TransparencyChangeHandler(value, layer))" Variant="Variant.Filled">Прозрачность: @layer.Transparency %</MudSlider>
                                         <div style="display:flex; justify-content:space-around">
-                                            <MudCheckBox @bind-Value="@layer.R" Color="Color.Error" Size="Size.Small"></MudCheckBox>
-                                            <MudCheckBox @bind-Value="@layer.G" Color="Color.Success" Size="Size.Small"></MudCheckBox>
-                                            <MudCheckBox @bind-Value="@layer.B" Color="Color.Info" Size="Size.Small"></MudCheckBox>
+                                            <MudCheckBox @bind-Value="@layer.R" Color="Color.Error" Size="MudBlazor.Size.Small"></MudCheckBox>
+                                            <MudCheckBox @bind-Value="@layer.G" Color="Color.Success" Size="MudBlazor.Size.Small"></MudCheckBox>
+                                            <MudCheckBox @bind-Value="@layer.B" Color="Color.Info" Size="MudBlazor.Size.Small"></MudCheckBox>
                                         </div>
                                     }
                                     else
@@ -106,11 +114,22 @@
                             <MudButton HtmlTag="label"
                                        Variant="Variant.Filled"
                                        Color="Color.Primary"
-                                       Size="Size.Small"
+                                       Size="MudBlazor.Size.Small"
                                        StartIcon="@Icons.Material.Filled.CloudUpload"
                                        OnClick="AddNewPoint">
                                 Добавить точку
                             </MudButton>
+                            <MudChart ChartType="ChartType.Bar" ChartSeries="@Model.Series" @bind-SelectedIndex="Index" Width="100%" Height="130px"></MudChart>
+                        </MudStack>
+                    }
+                    @if (page == "binarization")
+                    {
+                        <h2>Бинаризация</h2>
+                        
+                        <MudStack>
+                            <MudButton OnClick=ParamsChanged Style="width:100%; margin-bottom:10px" Variant="Variant.Outlined">Алгоритм Гаврилова</MudButton>
+                            
+
                         </MudStack>
                     }
                 </div>
@@ -140,7 +159,7 @@
                                    Variant="Variant.Filled"
                                    Color="Color.Primary"
                                    StartIcon="@Icons.Material.Filled.CloudUpload"
-                                   Size="Size.Large"
+                                   Size="MudBlazor.Size.Large"
                                    Style="width:100%; height:70px"
                                    for="@context.Id">
                             Загрузить изображение
@@ -173,6 +192,7 @@
     public async Task ParamsChanged()
     {
         Model.CalculateImage(page);
+        
     }
 
     public async Task AddNewPoint()
@@ -183,4 +203,7 @@
     {
         Model.points.Remove(point);
     }
+    private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
+    public string[] XAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep" };
+    
 }

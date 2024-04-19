@@ -192,5 +192,47 @@ namespace SCOI
             }
             return Converter.FromByteToBitmap(mainBytes, mainImage.Width, mainImage.Height, mainImage.HorizontalResolution, mainImage.VerticalResolution);
         }
+        public static List<double> CalculateDataset(System.Drawing.Image mainImage)
+        {
+            byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)mainImage);
+            List<byte> monochromeBytes = new List<byte>();
+            for (int i = 0; i < mainBytes.Length-2; i+=3)
+            {
+                monochromeBytes.Add((byte)Math.Round((double)(mainBytes[i] + mainBytes[i + 1] + mainBytes[i + 2]) / 3));
+            }
+            List<double> data = new List<double>();
+            for (int i = 0; i < 255; i++)
+            {
+                data.Add(monochromeBytes.Where(x=>x==i).Count());
+            }
+            return data;
+        }
+        public static System.Drawing.Image BinarizeGavrilov(System.Drawing.Image mainImage)
+        {
+            byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)mainImage);
+            List<byte> monochromeBytes = new List<byte>();
+            double middlePixelValue = 0;
+            for (int i = 0; i < mainBytes.Length - 2; i += 3)
+            {
+                monochromeBytes.Add((byte)Math.Round((double)(mainBytes[i] + mainBytes[i + 1] + mainBytes[i + 2]) / 3));
+                monochromeBytes.Add((byte)Math.Round((double)(mainBytes[i] + mainBytes[i + 1] + mainBytes[i + 2]) / 3));
+                monochromeBytes.Add((byte)Math.Round((double)(mainBytes[i] + mainBytes[i + 1] + mainBytes[i + 2]) / 3));
+                middlePixelValue += monochromeBytes.Last();
+            }
+            int pixelCount = mainImage.Width * mainImage.Height;
+            middlePixelValue = middlePixelValue / pixelCount;
+            for (int i = 0; i < monochromeBytes.Count; i++)
+            {
+                if (monochromeBytes[i] <= middlePixelValue)
+                {
+                    monochromeBytes[i] = 0;
+                }
+                else
+                {
+                    monochromeBytes[i] = 255;
+                }
+            }
+            return Converter.FromByteToBitmap(monochromeBytes.ToArray(), mainImage.Width, mainImage.Height, mainImage.HorizontalResolution, mainImage.VerticalResolution);
+        }
     }
 }

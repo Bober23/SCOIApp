@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
+using Syncfusion.Blazor;
 
 namespace SCOI
 {
@@ -18,6 +19,7 @@ namespace SCOI
             builder.Services.AddMauiBlazorWebView();
 
             builder.Services.AddMudServices();
+            builder.Services.AddSyncfusionBlazor();
 
 
 #if DEBUG

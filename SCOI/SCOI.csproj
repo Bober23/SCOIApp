@@ -58,11 +58,16 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="ChartJs.Blazor.Fork" Version="2.0.2" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
         <PackageReference Include="MudBlazor" Version="6.19.1" />
+        <PackageReference Include="Plotly.Blazor" Version="4.3.0" />
+        <PackageReference Include="Syncfusion.Blazor.Charts" Version="25.1.40" />
+        <PackageReference Include="Syncfusion.Blazor.Core" Version="25.1.40" />
+        <PackageReference Include="Syncfusion.Blazor.Data" Version="25.1.40" />
         <PackageReference Include="System.Drawing.Common" Version="8.0.3" />
     </ItemGroup>
 
