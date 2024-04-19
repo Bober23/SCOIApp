@@ -15,7 +15,7 @@ namespace SCOI
         public List<Layer> layers = new List<Layer>();
         public List<ChartSeries> Series = new List<ChartSeries>()
         {
-            new ChartSeries() {Name="Интенсивность", Data = new double[] { 40, 20, 25, 27, 46, 60, 48, 80, 15 } },
+            new ChartSeries() {Name="Интенсивность"},
         };
         public List<MyPoint> points = new List<MyPoint>()
         {
@@ -32,14 +32,12 @@ namespace SCOI
             var mainLayer = new Layer(MainImage);
             mainLayer.Operation = "Основное изображение";
             layers.Add(mainLayer);
-            Console.WriteLine("Vse");
         }
         public async Task LoadNewLayer(IBrowserFile uploadedFile)
         {
             using Stream stream = uploadedFile.OpenReadStream(maxAllowedSize: 10000000);
             var img = await Converter.FromStreamToImage(stream);
             layers.Add(new Layer(img));
-            Console.WriteLine("Vse");
         }
         public void CalculateImage(string page)
         {
