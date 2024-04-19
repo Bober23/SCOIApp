@@ -192,7 +192,7 @@ namespace SCOI
             }
             return Converter.FromByteToBitmap(mainBytes, mainImage.Width, mainImage.Height, mainImage.HorizontalResolution, mainImage.VerticalResolution);
         }
-        public static List<double> CalculateDataset(System.Drawing.Image mainImage)
+        public static double[] CalculateDataset(System.Drawing.Image mainImage)
         {
             byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)mainImage);
             List<byte> monochromeBytes = new List<byte>();
@@ -200,10 +200,10 @@ namespace SCOI
             {
                 monochromeBytes.Add((byte)Math.Round((double)(mainBytes[i] + mainBytes[i + 1] + mainBytes[i + 2]) / 3));
             }
-            List<double> data = new List<double>();
-            for (int i = 0; i < 255; i++)
+            double[] data = new double[256];
+            for (int i = 0; i < monochromeBytes.Count; i++)
             {
-                data.Add(monochromeBytes.Where(x=>x==i).Count());
+                data[monochromeBytes[i]]++;
             }
             return data;
         }

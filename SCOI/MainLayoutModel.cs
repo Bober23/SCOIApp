@@ -72,7 +72,7 @@ namespace SCOI
             if (page == "gradation")
             {
                 MainImage = ImageProcessor.CalculateGradationTranform(layers.First().Image, points);
-                Series[0].Data = ImageProcessor.CalculateDataset(MainImage).ToArray();
+                Series[0].Data = ImageProcessor.CalculateDataset(MainImage);
             }
             if (page == "binarization")
             {
