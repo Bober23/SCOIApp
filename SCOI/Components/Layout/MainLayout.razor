@@ -36,10 +36,12 @@
     {
         <MudDrawer @bind-Open="@open" ClipMode=DrawerClipMode.Docked Elevation="1" Variant="@DrawerVariant.Mini">
             <MudNavMenu>
-                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "layers"; Model.layers.First().Image = Model.MainImage;})" Icon="@Icons.Material.Filled.Layers">Слои</MudNavLink>
-                <MudNavLink Match="NavLinkMatch.All" OnClick="@(async () => {page = "gradation"; Model.layers.First().Image = Model.MainImage;await ParamsChanged();})" Icon="@Icons.Material.Filled.BarChart">Градационные преобразования</MudNavLink>
-                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "binarization"; Model.layers.First().Image = Model.MainImage;})" Icon="@Icons.Material.Filled.Contrast">Бинаризация</MudNavLink>
-                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "pr_filtration"; Model.layers.First().Image = Model.MainImage;})" Icon="@Icons.Material.Filled.CenterFocusStrong">Бинаризация</MudNavLink>
+                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "layers"; Model.layers.First().Image = Model.MainImage;showFilter=false;})" Icon="@Icons.Material.Filled.Layers">Слои</MudNavLink>
+                <MudNavLink Match="NavLinkMatch.All" OnClick="@(async () => {page = "gradation"; Model.layers.First().Image = Model.MainImage;await ParamsChanged();showFilter=false;})" Icon="@Icons.Material.Filled.BarChart">Градационные преобразования</MudNavLink>
+                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "binarization"; Model.layers.First().Image = Model.MainImage;showFilter=false;})" Icon="@Icons.Material.Filled.Contrast">Бинаризация</MudNavLink>
+                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "ms_filtration"; Model.layers.First().Image = Model.MainImage;showFilter=false;})" Icon="@Icons.Material.Filled.CenterFocusStrong">Масочная фильтрация</MudNavLink>
+                <MudNavLink Match="NavLinkMatch.All" OnClick="@(() => {page = "med_filtration"; Model.layers.First().Image = Model.MainImage;showFilter=false;})" Icon="@Icons.Material.Filled.Flip">Медианная фильтрация</MudNavLink>
+
             </MudNavMenu>
         </MudDrawer>
 
@@ -138,34 +140,65 @@
 
                         </MudStack>
                     }
-                    @if (page == "pr_filtration")
+                    @if (page == "ms_filtration")
                     {
-                        <h2>Фильтрация</h2>
+                        <h2>Масочная фильтрация</h2>
 
                         <MudStack>
                             <MudPaper Style="padding:5px">
                                 <h4>Фильтрация по Гауссу</h4>
                                 <MudTextField @bind-Value=gaussSigma Label="Сигма" Variant="Variant.Outlined" Validation="new Func<int,bool>(context => context>0)"></MudTextField>
-                                <MudTextField @bind-Value=gaussRadius Label="Радиус" Variant="Variant.Outlined" Validation="new Func<int,bool>(context => context>0)"></MudTextField>
+                                <MudTextField @bind-Value=gaussRadius Label="Размер фильтра" Variant="Variant.Outlined" Validation="new Func<int,bool>(context => context>0)"></MudTextField>
                                 <MudButton OnClick=GenerateGaussMatrix Style="width:100%; margin-bottom:10px; margin-top:10px" Variant="Variant.Outlined">Использовать</MudButton>
                                
                             </MudPaper>
-                            @if (working)
+                            <MudPaper Style="padding:5px">
+                                <h4>Линейная фильтрация</h4>
+                                <MudTextField @bind-Value=linearRadius Label="Размер фильтра" Variant="Variant.Outlined" Validation="new Func<int,bool>(context => context>0)"></MudTextField>
+                                <MudButton OnClick=GenerateLinearMatrix Style="width:100%; margin-bottom:10px; margin-top:10px" Variant="Variant.Outlined">Использовать</MudButton>
+
+                            </MudPaper>
+                            @if (Model.filter != null)
                             {
-                                <div class="spinner"></div>
+                                <MudButton OnClick=ParamsChanged Style="width:100%;" Color="Color.Primary" Variant="Variant.Filled">Применить заданный фильтр</MudButton>
+                                <MudButton OnClick=RedactFilter Style="width:100%;" Variant="Variant.Outlined">Редактировать фильтр</MudButton>
                             }
-                            @if (Model.filter != null && !working)
-                            {
-                                <MudButton OnClick=ParamsChanged Style="width:100%; margin-bottom:10px" Color="Color.Primary" Variant="Variant.Filled">Применить заданный фильтр</MudButton>
-                            }
+                        </MudStack>
+                    }
+                    @if (page == "med_filtration")
+                    {
+                        <h2>Медианная фильтрация</h2>
+
+                        <MudStack>
+                            <MudPaper Style="padding:5px">
+                                <MudTextField @bind-Value=Model.filterR Label="Размер фильтра" Variant="Variant.Outlined" Validation="new Func<int,bool>(context => context>0)"></MudTextField>
+                                <MudButton OnClick=ParamsChanged Style="width:100%; margin-bottom:10px; margin-top:10px" Color="Color.Primary" Variant="Variant.Filled">Использовать</MudButton>
+
+                            </MudPaper>
                         </MudStack>
                     }
                 </div>
                 <div style="width:100%; align-content:center; display:flex; padding:10px;">
                     <div style="flex-grow: 1" />
-                    @if (Model.MainImage != null)
+                    @if (Model.MainImage != null && !showFilter)
                     {
                         <MudImage Src=@Converter.FromImageToImageSource(Model.MainImage) ObjectFit=ObjectFit.Contain Elevation="25" Fluid="true" Class="rounded-lg" Style="margin: auto;max-height:100%" />
+                    }
+                    @if (showFilter)
+                    {
+                        <div style="display:block">
+                            @for(int i = 0; i < Math.Sqrt(Model.filter.Length); i++)
+                            {
+                                <div style="display:flex">
+                                    @for (int j = 0; j < Math.Sqrt(Model.filter.Length); j++)
+                                    {
+                                        var a = i;
+                                        var b = j;
+                                        <MudTextField @bind-Value=Model.filter[a,b] Placeholder="@($"{i},{j}")" Variant="Variant.Outlined"></MudTextField>
+                                    }
+                                </div>
+                            }
+                        </div>
                     }
 
                     <div style="flex-grow: 1" />
@@ -203,6 +236,7 @@
 @code {
     bool open = false;
     bool working = false;
+    bool showFilter = false;
     MainLayoutModel Model = new MainLayoutModel();
 
     string page = "layers";
@@ -220,6 +254,7 @@
 
     public async Task ParamsChanged()
     {
+        showFilter = false;
         working = true;
         Model.CalculateImage(page);
         working = false;
@@ -240,9 +275,21 @@
             Model.GenerateGaussMatrix(gaussSigma,gaussRadius);
         }
     }
+    public async Task GenerateLinearMatrix()
+    {
+        if (linearRadius > 0)
+        {
+            Model.GenerateLinearMatrix(linearRadius);
+        }
+    }
+    public async Task RedactFilter()
+    {
+        showFilter = !showFilter;
+    }
     private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
 
     private double gaussSigma = 0;
     private int gaussRadius = 0;
+    private int linearRadius = 0;
 
 }

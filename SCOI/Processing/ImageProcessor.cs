@@ -197,7 +197,7 @@ namespace SCOI
         {
             byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)mainImage);
             List<byte> monochromeBytes = new List<byte>();
-            for (int i = 0; i < mainBytes.Length-2; i+=3)
+            for (int i = 0; i < mainBytes.Length - 2; i += 3)
             {
                 monochromeBytes.Add((byte)Math.Round((double)(mainBytes[i] + mainBytes[i + 1] + mainBytes[i + 2]) / 3));
             }
@@ -239,23 +239,36 @@ namespace SCOI
         {
             double sum = 0;
             double[,] gauss = new double[radius * 2 + 1, radius * 2 + 1];
-            for (int i = 0; i< radius*2+1; i++)
+            for (int i = 0; i < radius * 2 + 1; i++)
             {
-                for (int j = 0; j< radius * 2 + 1; j++)
+                for (int j = 0; j < radius * 2 + 1; j++)
                 {
-                    double value = 1.0 / (2.0 * Math.PI * Math.Pow(sigma, 2)) * Math.Exp(-1.0 * (Math.Pow(i-radius, 2) + Math.Pow(j-radius, 2)) / (2.0 * Math.Pow(sigma, 2)));
+                    double value = 1.0 / (2.0 * Math.PI * Math.Pow(sigma, 2)) * Math.Exp(-1.0 * (Math.Pow(i - radius, 2) + Math.Pow(j - radius, 2)) / (2.0 * Math.Pow(sigma, 2)));
                     gauss[i, j] = value;
-                    
+
                 }
             }
             return gauss;
+        }
+        public static double[,] GenerateLinearMatrix(int radius)
+        {
+            double[,] filter = new double[radius * 2 + 1, radius * 2 + 1];
+            for (int i = 0; i < radius * 2 + 1; i++)
+            {
+                for (int j = 0; j < radius * 2 + 1; j++)
+                {
+                    filter[i, j] = 1.0 / filter.Length;
+
+                }
+            }
+            return filter;
         }
         public static System.Drawing.Image UseFilterOnImage(System.Drawing.Image image, double[,] filter, int r)
         {
             byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)image);
             MyPixel[,] pixels = new MyPixel[image.Height, image.Width];
             int counter = 0;
-            for (int i = 0; i < image.Height; i++) 
+            for (int i = 0; i < image.Height; i++)
             {
                 for (int j = 0; j < image.Width; j++)
                 {
@@ -271,29 +284,29 @@ namespace SCOI
             }
             for (int i = 0; i < image.Height; i++)
             {
-                for (int j = 0;j < image.Width; j++)
+                for (int j = 0; j < image.Width; j++)
                 {
                     double sumR = 0;
                     double sumG = 0;
                     double sumB = 0;
-                    for (int k = 0; k < r*2+1; k++)
+                    for (int k = 0; k < r * 2 + 1; k++)
                     {
-                        for (int l = 0; l < r*2+1; l++)
+                        for (int l = 0; l < r * 2 + 1; l++)
                         {
                             var filterValue = filter[k, l];
                             int p1;
                             int p2;
                             if (i - r + k < 0)
                             {
-                                p1 = (i - r + k)*-1;
+                                p1 = (i - r + k) * -1;
                             }
                             else if (i - r + k >= image.Height)
                             {
-                                p1 = image.Height-1-((i - r + k)-image.Height);
+                                p1 = image.Height - 1 - ((i - r + k) - image.Height);
                             }
                             else
                             {
-                                p1 = i-r+k;
+                                p1 = i - r + k;
                             }
                             if (j - r + l < 0)
                             {
@@ -301,7 +314,7 @@ namespace SCOI
                             }
                             else if (j - r + l >= image.Width)
                             {
-                                p2 = image.Width-1 - ((j - r + l) - image.Width);
+                                p2 = image.Width - 1 - ((j - r + l) - image.Width);
                             }
                             else
                             {
@@ -312,7 +325,7 @@ namespace SCOI
                             sumB += filterValue * pixels[p1, p2].B;
                         }
                     }
-                    pixels[i,j].R = (int)sumR;
+                    pixels[i, j].R = (int)sumR;
                     pixels[i, j].G = (int)sumG;
                     pixels[i, j].B = (int)sumB;
                 }
@@ -321,7 +334,92 @@ namespace SCOI
             counter = 0;
             for (int i = 0; i < image.Height; i++)
             {
-                for (int j = 0; j < image.Width; j++) 
+                for (int j = 0; j < image.Width; j++)
+                {
+                    newBytes[counter] = (byte)pixels[i, j].R;
+                    counter++;
+                    newBytes[counter] = (byte)pixels[i, j].G;
+                    counter++;
+                    newBytes[counter] = (byte)pixels[i, j].B;
+                    counter++;
+                }
+            }
+            return Converter.FromByteToBitmap(newBytes, image.Width, image.Height, image.HorizontalResolution, image.VerticalResolution);
+        }
+        public static System.Drawing.Image UseMedFilterOnImage(System.Drawing.Image image, int r)
+        {
+            byte[] mainBytes = Converter.FromBitmapToByte((Bitmap)image);
+            MyPixel[,] pixels = new MyPixel[image.Height, image.Width];
+            int counter = 0;
+            for (int i = 0; i < image.Height; i++)
+            {
+                for (int j = 0; j < image.Width; j++)
+                {
+                    MyPixel pixel = new MyPixel();
+                    pixel.R = mainBytes[counter];
+                    counter++;
+                    pixel.G = mainBytes[counter];
+                    counter++;
+                    pixel.B = mainBytes[counter];
+                    counter++;
+                    pixels[i, j] = pixel;
+                }
+            }
+            for (int i = 0; i < image.Height; i++)
+            {
+                for (int j = 0; j < image.Width; j++)
+                {
+                    List<double> valuesR = new List<double>();
+                    List<double> valuesG = new List<double>();
+                    List<double> valuesB = new List<double>();
+                    for (int k = 0; k < r * 2 + 1; k++)
+                    {
+                        for (int l = 0; l < r * 2 + 1; l++)
+                        {
+                            int p1;
+                            int p2;
+                            if (i - r + k < 0)
+                            {
+                                p1 = (i - r + k) * -1;
+                            }
+                            else if (i - r + k >= image.Height)
+                            {
+                                p1 = image.Height - 1 - ((i - r + k) - image.Height);
+                            }
+                            else
+                            {
+                                p1 = i - r + k;
+                            }
+                            if (j - r + l < 0)
+                            {
+                                p2 = (j - r + l) * -1;
+                            }
+                            else if (j - r + l >= image.Width)
+                            {
+                                p2 = image.Width - 1 - ((j - r + l) - image.Width);
+                            }
+                            else
+                            {
+                                p2 = j - r + l;
+                            }
+                            valuesR.Add(pixels[p1, p2].R);
+                            valuesG.Add(pixels[p1, p2].G);
+                            valuesB.Add(pixels[p1, p2].B);
+                        }
+                    }
+                    valuesR.Sort();
+                    valuesG.Sort();
+                    valuesB.Sort();
+                    pixels[i, j].R = (int)valuesR[valuesR.Count / 2];
+                    pixels[i, j].G = (int)valuesG[valuesG.Count / 2];
+                    pixels[i, j].B = (int)valuesB[valuesB.Count / 2];
+                }
+            }
+            byte[] newBytes = new byte[mainBytes.Length];
+            counter = 0;
+            for (int i = 0; i < image.Height; i++)
+            {
+                for (int j = 0; j < image.Width; j++)
                 {
                     newBytes[counter] = (byte)pixels[i, j].R;
                     counter++;
