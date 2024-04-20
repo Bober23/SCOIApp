@@ -22,6 +22,8 @@ namespace SCOI
             new MyPoint(0,0),
             new MyPoint(255,255)
         };
+        public double[,] filter;
+        private int filterR;
         public System.Drawing.Image MainImage { get; set; }
 
         public async Task OpenNewMainImage(IBrowserFile uploadedFile)
@@ -38,6 +40,11 @@ namespace SCOI
             using Stream stream = uploadedFile.OpenReadStream(maxAllowedSize: 10000000);
             var img = await Converter.FromStreamToImage(stream);
             layers.Add(new Layer(img));
+        }
+        public void GenerateGaussMatrix(double sigma, int radius)
+        {
+            filter = ImageProcessor.GenerateGaussMatrix(sigma, radius);
+            filterR = radius;
         }
         public void CalculateImage(string page)
         {
@@ -75,6 +82,13 @@ namespace SCOI
             if (page == "binarization")
             {
                 MainImage = ImageProcessor.BinarizeGavrilov(layers.First().Image);
+            }
+            if (page == "pr_filtration")
+            {
+                if (filter != null)
+                {
+                    MainImage = ImageProcessor.UseFilterOnImage(MainImage, filter, filterR);
+                }
             }
         }
 

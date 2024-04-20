@@ -19,7 +19,6 @@ namespace SCOI
             builder.Services.AddMauiBlazorWebView();
 
             builder.Services.AddMudServices();
-            builder.Services.AddSyncfusionBlazor();
 
 
 #if DEBUG

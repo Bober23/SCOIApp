@@ -2,10 +2,11 @@
 @using ChartJs.Blazor.BarChart
 @using ChartJs.Blazor.Common
 @using ChartJs.Blazor.PieChart
-@using Components
 @using Plotly.Blazor
 @using Plotly.Blazor.Traces
 @using Plotly.Blazor.Traces.HistogramLib
+
+
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -142,9 +143,21 @@
                         <h2>Фильтрация</h2>
 
                         <MudStack>
-                            <MudButton OnClick=ParamsChanged Style="width:100%; margin-bottom:10px" Variant="Variant.Outlined">Алгоритм Гаврилова</MudButton>
-
-
+                            <MudPaper Style="padding:5px">
+                                <h4>Фильтрация по Гауссу</h4>
+                                <MudTextField @bind-Value=gaussSigma Label="Сигма" Variant="Variant.Outlined" Validation="new Func<int,bool>(context => context>0)"></MudTextField>
+                                <MudTextField @bind-Value=gaussRadius Label="Радиус" Variant="Variant.Outlined" Validation="new Func<int,bool>(context => context>0)"></MudTextField>
+                                <MudButton OnClick=GenerateGaussMatrix Style="width:100%; margin-bottom:10px; margin-top:10px" Variant="Variant.Outlined">Использовать</MudButton>
+                               
+                            </MudPaper>
+                            @if (working)
+                            {
+                                <div class="spinner"></div>
+                            }
+                            @if (Model.filter != null && !working)
+                            {
+                                <MudButton OnClick=ParamsChanged Style="width:100%; margin-bottom:10px" Color="Color.Primary" Variant="Variant.Filled">Применить заданный фильтр</MudButton>
+                            }
                         </MudStack>
                     }
                 </div>
@@ -189,6 +202,7 @@
 </MudLayout>
 @code {
     bool open = false;
+    bool working = false;
     MainLayoutModel Model = new MainLayoutModel();
 
     string page = "layers";
@@ -206,8 +220,9 @@
 
     public async Task ParamsChanged()
     {
+        working = true;
         Model.CalculateImage(page);
-        
+        working = false;
     }
 
     public async Task AddNewPoint()
@@ -218,7 +233,16 @@
     {
         Model.points.Remove(point);
     }
+    public async Task GenerateGaussMatrix()
+    {
+        if (gaussSigma>0 && gaussRadius > 0)
+        {
+            Model.GenerateGaussMatrix(gaussSigma,gaussRadius);
+        }
+    }
     private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
-    public string[] XAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep" };
-    
+
+    private double gaussSigma = 0;
+    private int gaussRadius = 0;
+
 }
